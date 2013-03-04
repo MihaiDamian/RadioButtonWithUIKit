@@ -37,6 +37,7 @@
     questionText.backgroundColor = [UIColor clearColor];
     questionText.text = @"Which color do you like?";
     [container addSubview:questionText];
+    [questionText release];
     
     RadioButton *rb1 = [[RadioButton alloc] initWithGroupId:@"first group" index:0];
     RadioButton *rb2 = [[RadioButton alloc] initWithGroupId:@"first group" index:1];
@@ -72,7 +73,9 @@
     [container addSubview:label3];
     [label3 release];
     
-    [RadioButton addObserverForGroupId:@"first group" observer:self];
+    [rb3 select];
+    
+    [RadioButton setDelegateForGroupId:@"first group" delegate:self];
 
     [container release];
     [super viewDidLoad];

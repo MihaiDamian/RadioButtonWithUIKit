@@ -21,5 +21,9 @@
 @property(nonatomic,assign)NSUInteger index;
 
 -(id)initWithGroupId:(NSString*)groupId index:(NSUInteger)index;
-+(void)addObserverForGroupId:(NSString*)groupId observer:(id)observer;
+
+-(void)select;
+
++(void)setDelegateForGroupId:(NSString*)groupId delegate:(id<RadioButtonDelegate>)delegate;
+
 @end

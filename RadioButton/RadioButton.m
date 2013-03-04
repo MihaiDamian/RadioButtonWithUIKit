@@ -23,19 +23,19 @@ static const NSUInteger kRadioButtonWidth=22;
 static const NSUInteger kRadioButtonHeight=22;
 
 static NSMutableArray *rb_instances=nil;
-static NSMutableDictionary *rb_observers=nil;
+static NSMutableDictionary *rb_delegates=nil;
 
-#pragma mark - Observer
+#pragma mark - Delegate
 
-+(void)addObserverForGroupId:(NSString*)groupId observer:(id)observer{
-    if(!rb_observers){
-        rb_observers = [[NSMutableDictionary alloc] init];
++(void)setDelegateForGroupId:(NSString*)groupId delegate:(id<RadioButtonDelegate>)delegate{
+    if(!rb_delegates){
+        rb_delegates = [[NSMutableDictionary alloc] init];
     }
     
-    if ([groupId length] > 0 && observer) {
-        [rb_observers setObject:observer forKey:groupId];
+    if ([groupId length] > 0 && delegate) {
+        [rb_delegates setObject:delegate forKey:groupId];
         // Make it weak reference
-        [observer release];
+        [delegate release];
     }
 }
 
@@ -55,12 +55,12 @@ static NSMutableDictionary *rb_observers=nil;
 
 +(void)buttonSelected:(RadioButton*)radioButton{
     
-    // Notify observers
-    if (rb_observers) {
-        id observer= [rb_observers objectForKey:radioButton.groupId];
+    // Notify delegates
+    if (rb_delegates) {
+        id delegate = [rb_delegates objectForKey:radioButton.groupId];
         
-        if(observer && [observer respondsToSelector:@selector(radioButtonSelectedAtIndex:inGroup:)]){
-            [observer radioButtonSelectedAtIndex:radioButton.index inGroup:radioButton.groupId];
+        if(delegate && [delegate respondsToSelector:@selector(radioButtonSelectedAtIndex:inGroup:)]){
+            [delegate radioButtonSelectedAtIndex:radioButton.index inGroup:radioButton.groupId];
         }
     }
     
@@ -101,12 +101,15 @@ static NSMutableDictionary *rb_observers=nil;
     [super dealloc];
 }
 
+-(void)select{
+    [_button setSelected:YES];
+    [RadioButton buttonSelected:self];
+}
 
 #pragma mark - Tap handling
 
 -(void)handleButtonTap:(id)sender{
-    [_button setSelected:YES];
-    [RadioButton buttonSelected:self];
+    [self select];
 }
 
 -(void)otherButtonSelected:(id)sender{
