@@ -8,34 +8,24 @@
 
 #import "RadioButton.h"
 
-@interface RadioButton()
--(void)defaultInit;
--(void)otherButtonSelected:(id)sender;
--(void)handleButtonTap:(id)sender;
-@end
 
 @implementation RadioButton
 
 @synthesize groupId=_groupId;
 @synthesize index=_index;
 
-static const NSUInteger kRadioButtonWidth=22;
-static const NSUInteger kRadioButtonHeight=22;
-
 static NSMutableArray *rb_instances=nil;
-static NSMutableDictionary *rb_delegates=nil;
+static NSMutableDictionary *rb_observers=nil;
 
-#pragma mark - Delegate
+#pragma mark - Observer
 
-+(void)setDelegateForGroupId:(NSString*)groupId delegate:(id<RadioButtonDelegate>)delegate{
-    if(!rb_delegates){
-        rb_delegates = [[NSMutableDictionary alloc] init];
++(void)setObserverForGroupId:(NSString*)groupId observer:(id<RadioButtonDelegate>)observer{
+    if(!rb_observers){
+        rb_observers = [[NSMutableDictionary alloc] init];
     }
     
-    if ([groupId length] > 0 && delegate) {
-        [rb_delegates setObject:delegate forKey:groupId];
-        // Make it weak reference
-        [delegate release];
+    if ([groupId length] > 0 && observer) {
+        [rb_observers setObject:observer forKey:groupId];
     }
 }
 
@@ -47,20 +37,18 @@ static NSMutableDictionary *rb_delegates=nil;
     }
     
     [rb_instances addObject:radioButton];
-    // Make it weak reference
-    [radioButton release];
 }
 
 #pragma mark - Class level handler
 
 +(void)buttonSelected:(RadioButton*)radioButton{
     
-    // Notify delegates
-    if (rb_delegates) {
-        id delegate = [rb_delegates objectForKey:radioButton.groupId];
+    // Notify observers
+    if (rb_observers) {
+        id observer= [rb_observers objectForKey:radioButton.groupId];
         
-        if(delegate && [delegate respondsToSelector:@selector(radioButtonSelectedAtIndex:inGroup:)]){
-            [delegate radioButtonSelectedAtIndex:radioButton.index inGroup:radioButton.groupId];
+        if(observer && [observer respondsToSelector:@selector(radioButtonSelectedAtIndex:inGroup:)]){
+            [observer radioButtonSelectedAtIndex:radioButton.index inGroup:radioButton.groupId];
         }
     }
     
@@ -94,14 +82,8 @@ static NSMutableDictionary *rb_delegates=nil;
     return self;
 }
 
-- (void)dealloc
+-(void)select
 {
-    [_groupId release];
-    [_button release];
-    [super dealloc];
-}
-
--(void)select{
     [_button setSelected:YES];
     [RadioButton buttonSelected:self];
 }
@@ -122,16 +104,22 @@ static NSMutableDictionary *rb_delegates=nil;
 #pragma mark - RadioButton init
 
 -(void)defaultInit{
+    UIImage *unselectedImage = [UIImage imageNamed:@"RadioButton-Unselected"];
+    UIImage *selectedImage = [UIImage imageNamed:@"RadioButton-Selected"];
+    CGFloat buttonWidth = unselectedImage.size.width;
+    CGFloat buttonHeight = unselectedImage.size.height;
+    
     // Setup container view
-    self.frame = CGRectMake(0, 0, kRadioButtonWidth, kRadioButtonHeight);
+    self.frame = CGRectMake(0, 0, buttonWidth, buttonHeight);
     
     // Customize UIButton
     _button = [UIButton buttonWithType:UIButtonTypeCustom];
-    _button.frame = CGRectMake(0, 0,kRadioButtonWidth, kRadioButtonHeight);
+    _button.frame = CGRectMake(0, 0,buttonWidth, buttonHeight);
     _button.adjustsImageWhenHighlighted = NO; 
     
-    [_button setImage:[UIImage imageNamed:@"RadioButton-Unselected"] forState:UIControlStateNormal];
-    [_button setImage:[UIImage imageNamed:@"RadioButton-Selected"] forState:UIControlStateSelected];
+    [_button setImage:unselectedImage forState:UIControlStateNormal];
+    [_button setImage:selectedImage forState:UIControlStateSelected];
+    [_button setContentMode:UIViewContentModeScaleAspectFit];
     
     [_button addTarget:self action:@selector(handleButtonTap:) forControlEvents:UIControlEventTouchUpInside];
     
